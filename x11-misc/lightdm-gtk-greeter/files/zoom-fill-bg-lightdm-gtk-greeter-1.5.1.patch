@@ -1,0 +1,59 @@
+--- src/lightdm-gtk-greeter.c.orig	2013-04-12 14:33:30.678988746 +0900
++++ src/lightdm-gtk-greeter.c	2013-04-12 14:33:46.238988544 +0900
+@@ -987,6 +987,46 @@
+     return surface;
+ }
+ 
++static GdkPixbuf *
++make_zoom_fill(const GdkPixbuf *orig, const int winw, const int winh)
++{
++     int x, y, w, h;
++
++     // depends on bigger side
++     unsigned orig_w = gdk_pixbuf_get_width(orig);
++     unsigned orig_h = gdk_pixbuf_get_height(orig);
++
++     // what if we expend it to fit the screen width?
++     x = 0;
++     w = winw;
++     h = winw * orig_h / orig_w;
++     y = (h - winh) / 2;
++
++     if (!(h >= winh)) {
++          // the image isn't tall enough that way!
++          // expand it to fit the screen height
++          y = 0;
++          w = winh * orig_w / orig_h;
++          h = winh;
++          x = (w - winw) / 2;
++     }
++
++     GdkPixbuf *tmp = gdk_pixbuf_scale_simple(orig, w, h, GDK_INTERP_BILINEAR);
++     GdkPixbuf *retval = gdk_pixbuf_new(gdk_pixbuf_get_colorspace(orig),
++                                        gdk_pixbuf_get_has_alpha(orig),
++                                        gdk_pixbuf_get_bits_per_sample(orig),
++                                        winw, winh);
++
++     // copy it in
++     gdk_pixbuf_copy_area(tmp, x, y, winw, winh,
++                          retval, 0, 0);
++
++     // release temporary buffer
++     g_object_unref (tmp);
++
++     return retval;
++}
++
+ static void
+ set_background (GdkPixbuf *new_bg)
+ {
+@@ -1017,8 +1057,7 @@
+ 
+             if (bg)
+             {
+-                GdkPixbuf *p = gdk_pixbuf_scale_simple (bg, monitor_geometry.width,
+-                                                        monitor_geometry.height, GDK_INTERP_BILINEAR);
++                 GdkPixbuf *p = make_zoom_fill(bg, monitor_geometry.width, monitor_geometry.height);
+                 if (!gdk_pixbuf_get_has_alpha (p))
+                     p = gdk_pixbuf_add_alpha (p, FALSE, 255, 255, 255);
+                 gdk_cairo_set_source_pixbuf (c, p, monitor_geometry.x, monitor_geometry.y);
