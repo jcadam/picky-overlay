@@ -49,8 +49,13 @@ src_prepare() {
 	epatch "${FILESDIR}"/session-wrapper-${PN}.patch
 	epatch_user
 
-	AT_M4DIR=${WORKDIR} eautoreconf
-
+	# Remove bogus Makefile statement. This needs to go upstream
+	sed -i /"@YELP_HELP_RULES@"/d help/Makefile.am || die
+	if has_version dev-libs/gobject-introspection; then
+		eautoreconf
+	else
+		AT_M4DIR=${WORKDIR} eautoreconf
+	fi
 }
 
 src_configure() {
