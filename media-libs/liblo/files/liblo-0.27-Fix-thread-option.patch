@@ -1,0 +1,48 @@
+--- configure.ac.orig	2013-06-02 14:09:32.589754299 +0900
++++ configure.ac	2013-06-02 14:10:13.839754295 +0900
+@@ -140,7 +140,6 @@
+ 	src/Makefile
+ 	src/tools/Makefile
+ 	src/liblo.def
+-	examples/Makefile
+ 	lo/Makefile
+ 	lo/lo.h
+ 	lo/lo_endian.h
+--- configure.orig	2013-06-02 14:09:40.859754297 +0900
++++ configure	2013-06-02 14:10:29.759754293 +0900
+@@ -12726,7 +12726,7 @@
+ 	CFLAGS="$CF -O0 -g -Wall -Werror"
+ fi
+ 
+-ac_config_files="$ac_config_files Makefile src/Makefile src/tools/Makefile src/liblo.def examples/Makefile lo/Makefile lo/lo.h lo/lo_endian.h liblo.pc doc/Makefile doc/reference.doxygen build/Makefile"
++ac_config_files="$ac_config_files Makefile src/Makefile src/tools/Makefile src/liblo.def lo/Makefile lo/lo.h lo/lo_endian.h liblo.pc doc/Makefile doc/reference.doxygen build/Makefile"
+ 
+ cat >confcache <<\_ACEOF
+ # This file is a shell script that caches the results of configure
+@@ -13748,7 +13748,6 @@
+     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+     "src/tools/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/Makefile" ;;
+     "src/liblo.def") CONFIG_FILES="$CONFIG_FILES src/liblo.def" ;;
+-    "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
+     "lo/Makefile") CONFIG_FILES="$CONFIG_FILES lo/Makefile" ;;
+     "lo/lo.h") CONFIG_FILES="$CONFIG_FILES lo/lo.h" ;;
+     "lo/lo_endian.h") CONFIG_FILES="$CONFIG_FILES lo/lo_endian.h" ;;
+--- Makefile.am.orig	2013-06-02 14:09:50.999754297 +0900
++++ Makefile.am	2013-06-02 14:10:40.499754291 +0900
+@@ -1,4 +1,4 @@
+-SUBDIRS = src examples lo build @DOXYGEN@
++SUBDIRS = src lo build @DOXYGEN@
+ 
+ EXTRA_DIST = libtool ltmain.sh autogen.sh
+ 
+--- Makefile.in.orig	2013-06-02 14:10:00.569754295 +0900
++++ Makefile.in	2013-06-02 14:10:50.499754289 +0900
+@@ -287,7 +287,7 @@
+ top_build_prefix = @top_build_prefix@
+ top_builddir = @top_builddir@
+ top_srcdir = @top_srcdir@
+-SUBDIRS = src examples lo build @DOXYGEN@
++SUBDIRS = src lo build @DOXYGEN@
+ EXTRA_DIST = libtool ltmain.sh autogen.sh
+ ACLOCAL_AMFLAGS = -I m4
+ pkgconfigdir = $(libdir)/pkgconfig
