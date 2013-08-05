@@ -1,0 +1,3 @@
+## Mask this version in pick-overlay because funtoo has fixed the issue
+## in upstream
+=media-libs/liblo-0.27
