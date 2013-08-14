@@ -1,0 +1,295 @@
+--- Source/transupp.c.orig	2013-08-14 10:46:39.593811443 +0900
++++ Source/transupp.c	2013-08-14 10:58:09.373819524 +0900
+@@ -1,8 +1,10 @@
+ /*
+  * transupp.c
+  *
++ * This file was part of the Independent JPEG Group's software:
+  * Copyright (C) 1997-2011, Thomas G. Lane, Guido Vollbeding.
+- * This file is part of the Independent JPEG Group's software.
++ * Modifications:
++ * Copyright (C) 2010, D. R. Commander.
+  * For conditions of distribution and use, see the accompanying README file.
+  *
+  * This file contains image transformation routines and other utility code
+@@ -20,9 +22,19 @@
+ #include "jinclude.h"
+ #include "jpeglib.h"
+ #include "transupp.h"		/* My own external interface */
++#include "jpegcomp.h"
+ #include <ctype.h>		/* to declare isdigit() */
+ 
+ 
++#if JPEG_LIB_VERSION >= 70
++#define dstinfo_min_DCT_h_scaled_size dstinfo->min_DCT_h_scaled_size
++#define dstinfo_min_DCT_v_scaled_size dstinfo->min_DCT_v_scaled_size
++#else
++#define dstinfo_min_DCT_h_scaled_size DCTSIZE
++#define dstinfo_min_DCT_v_scaled_size DCTSIZE
++#endif
++
++
+ #if TRANSFORMS_SUPPORTED
+ 
+ /*
+@@ -134,7 +146,7 @@
+    * Partial iMCUs at the right edge are left untouched.
+    */
+   MCU_cols = srcinfo->output_width /
+-    (dstinfo->max_h_samp_factor * dstinfo->min_DCT_h_scaled_size);
++    (dstinfo->max_h_samp_factor * dstinfo_min_DCT_h_scaled_size);
+ 
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+     compptr = dstinfo->comp_info + ci;
+@@ -200,7 +212,7 @@
+    * this is essentially the same as the routine above.
+    */
+   MCU_cols = srcinfo->output_width /
+-    (dstinfo->max_h_samp_factor * dstinfo->min_DCT_h_scaled_size);
++    (dstinfo->max_h_samp_factor * dstinfo_min_DCT_h_scaled_size);
+ 
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+     compptr = dstinfo->comp_info + ci;
+@@ -265,7 +277,7 @@
+    * Partial iMCUs at the bottom edge are copied verbatim.
+    */
+   MCU_rows = srcinfo->output_height /
+-    (dstinfo->max_v_samp_factor * dstinfo->min_DCT_v_scaled_size);
++    (dstinfo->max_v_samp_factor * dstinfo_min_DCT_v_scaled_size);
+ 
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+     compptr = dstinfo->comp_info + ci;
+@@ -393,7 +405,7 @@
+    * not mirrored.
+    */
+   MCU_cols = srcinfo->output_height /
+-    (dstinfo->max_h_samp_factor * dstinfo->min_DCT_h_scaled_size);
++    (dstinfo->max_h_samp_factor * dstinfo_min_DCT_h_scaled_size);
+ 
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+     compptr = dstinfo->comp_info + ci;
+@@ -474,7 +486,7 @@
+    * not mirrored.
+    */
+   MCU_rows = srcinfo->output_width /
+-    (dstinfo->max_v_samp_factor * dstinfo->min_DCT_v_scaled_size);
++    (dstinfo->max_v_samp_factor * dstinfo_min_DCT_v_scaled_size);
+ 
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+     compptr = dstinfo->comp_info + ci;
+@@ -542,9 +554,9 @@
+   jpeg_component_info *compptr;
+ 
+   MCU_cols = srcinfo->output_width /
+-    (dstinfo->max_h_samp_factor * dstinfo->min_DCT_h_scaled_size);
++    (dstinfo->max_h_samp_factor * dstinfo_min_DCT_h_scaled_size);
+   MCU_rows = srcinfo->output_height /
+-    (dstinfo->max_v_samp_factor * dstinfo->min_DCT_v_scaled_size);
++    (dstinfo->max_v_samp_factor * dstinfo_min_DCT_v_scaled_size);
+ 
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+     compptr = dstinfo->comp_info + ci;
+@@ -653,9 +665,9 @@
+   jpeg_component_info *compptr;
+ 
+   MCU_cols = srcinfo->output_height /
+-    (dstinfo->max_h_samp_factor * dstinfo->min_DCT_h_scaled_size);
++    (dstinfo->max_h_samp_factor * dstinfo_min_DCT_h_scaled_size);
+   MCU_rows = srcinfo->output_width /
+-    (dstinfo->max_v_samp_factor * dstinfo->min_DCT_v_scaled_size);
++    (dstinfo->max_v_samp_factor * dstinfo_min_DCT_v_scaled_size);
+ 
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+     compptr = dstinfo->comp_info + ci;
+@@ -897,7 +909,12 @@
+     info->num_components = srcinfo->num_components;
+ 
+   /* Compute output image dimensions and related values. */
++#if JPEG_LIB_VERSION >= 80
+   jpeg_core_output_dimensions(srcinfo);
++#else
++  srcinfo->output_width = srcinfo->image_width;
++  srcinfo->output_height = srcinfo->image_height;
++#endif
+ 
+   /* Return right away if -perfect is given and transformation is not perfect.
+    */
+@@ -905,15 +922,15 @@
+     if (info->num_components == 1) {
+       if (!jtransform_perfect_transform(srcinfo->output_width,
+ 	  srcinfo->output_height,
+-	  srcinfo->min_DCT_h_scaled_size,
+-	  srcinfo->min_DCT_v_scaled_size,
++	  srcinfo->_min_DCT_h_scaled_size,
++	  srcinfo->_min_DCT_v_scaled_size,
+ 	  info->transform))
+ 	return FALSE;
+     } else {
+       if (!jtransform_perfect_transform(srcinfo->output_width,
+ 	  srcinfo->output_height,
+-	  srcinfo->max_h_samp_factor * srcinfo->min_DCT_h_scaled_size,
+-	  srcinfo->max_v_samp_factor * srcinfo->min_DCT_v_scaled_size,
++	  srcinfo->max_h_samp_factor * srcinfo->_min_DCT_h_scaled_size,
++	  srcinfo->max_v_samp_factor * srcinfo->_min_DCT_v_scaled_size,
+ 	  info->transform))
+ 	return FALSE;
+     }
+@@ -932,26 +949,26 @@
+     info->output_width = srcinfo->output_height;
+     info->output_height = srcinfo->output_width;
+     if (info->num_components == 1) {
+-      info->iMCU_sample_width = srcinfo->min_DCT_v_scaled_size;
+-      info->iMCU_sample_height = srcinfo->min_DCT_h_scaled_size;
++      info->iMCU_sample_width = srcinfo->_min_DCT_v_scaled_size;
++      info->iMCU_sample_height = srcinfo->_min_DCT_h_scaled_size;
+     } else {
+       info->iMCU_sample_width =
+-	srcinfo->max_v_samp_factor * srcinfo->min_DCT_v_scaled_size;
++	srcinfo->max_v_samp_factor * srcinfo->_min_DCT_v_scaled_size;
+       info->iMCU_sample_height =
+-	srcinfo->max_h_samp_factor * srcinfo->min_DCT_h_scaled_size;
++	srcinfo->max_h_samp_factor * srcinfo->_min_DCT_h_scaled_size;
+     }
+     break;
+   default:
+     info->output_width = srcinfo->output_width;
+     info->output_height = srcinfo->output_height;
+     if (info->num_components == 1) {
+-      info->iMCU_sample_width = srcinfo->min_DCT_h_scaled_size;
+-      info->iMCU_sample_height = srcinfo->min_DCT_v_scaled_size;
++      info->iMCU_sample_width = srcinfo->_min_DCT_h_scaled_size;
++      info->iMCU_sample_height = srcinfo->_min_DCT_v_scaled_size;
+     } else {
+       info->iMCU_sample_width =
+-	srcinfo->max_h_samp_factor * srcinfo->min_DCT_h_scaled_size;
++	srcinfo->max_h_samp_factor * srcinfo->_min_DCT_h_scaled_size;
+       info->iMCU_sample_height =
+-	srcinfo->max_v_samp_factor * srcinfo->min_DCT_v_scaled_size;
++	srcinfo->max_v_samp_factor * srcinfo->_min_DCT_v_scaled_size;
+     }
+     break;
+   }
+@@ -1020,7 +1037,7 @@
+   case JXFORM_FLIP_H:
+     if (info->trim)
+       trim_right_edge(info, srcinfo->output_width);
+-    if (info->y_crop_offset != 0)
++    if (info->y_crop_offset != 0 || info->slow_hflip)
+       need_workspace = TRUE;
+     /* do_flip_h_no_crop doesn't need a workspace array */
+     break;
+@@ -1124,9 +1141,11 @@
+   jtemp = dstinfo->image_width;
+   dstinfo->image_width = dstinfo->image_height;
+   dstinfo->image_height = jtemp;
++#if JPEG_LIB_VERSION >= 70
+   itemp = dstinfo->min_DCT_h_scaled_size;
+   dstinfo->min_DCT_h_scaled_size = dstinfo->min_DCT_v_scaled_size;
+   dstinfo->min_DCT_v_scaled_size = itemp;
++#endif
+ 
+   /* Transpose sampling factors */
+   for (ci = 0; ci < dstinfo->num_components; ci++) {
+@@ -1362,8 +1381,10 @@
+   /* Correct the destination's image dimensions as necessary
+    * for rotate/flip, resize, and crop operations.
+    */
++#if JPEG_LIB_VERSION >= 70
+   dstinfo->jpeg_width = info->output_width;
+   dstinfo->jpeg_height = info->output_height;
++#endif
+ 
+   /* Transpose destination image parameters */
+   switch (info->transform) {
+@@ -1371,9 +1392,17 @@
+   case JXFORM_TRANSVERSE:
+   case JXFORM_ROT_90:
+   case JXFORM_ROT_270:
++#if JPEG_LIB_VERSION < 70
++    dstinfo->image_width = info->output_height;
++    dstinfo->image_height = info->output_width;
++#endif
+     transpose_critical_parameters(dstinfo);
+     break;
+   default:
++#if JPEG_LIB_VERSION < 70
++    dstinfo->image_width = info->output_width;
++    dstinfo->image_height = info->output_height;
++#endif
+     break;
+   }
+ 
+@@ -1389,6 +1418,7 @@
+       GETJOCTET(srcinfo->marker_list->data[5]) == 0) {
+     /* Suppress output of JFIF marker */
+     dstinfo->write_JFIF_header = FALSE;
++#if JPEG_LIB_VERSION >= 70
+     /* Adjust Exif image parameters */
+     if (dstinfo->jpeg_width != srcinfo->image_width ||
+ 	dstinfo->jpeg_height != srcinfo->image_height)
+@@ -1396,6 +1426,7 @@
+       adjust_exif_parameters(srcinfo->marker_list->data + 6,
+ 	srcinfo->marker_list->data_length - 6,
+ 	dstinfo->jpeg_width, dstinfo->jpeg_height);
++#endif
+   }
+ 
+   /* Return the appropriate output data set */
+@@ -1432,7 +1463,7 @@
+ 	      src_coef_arrays, dst_coef_arrays);
+     break;
+   case JXFORM_FLIP_H:
+-    if (info->y_crop_offset != 0)
++    if (info->y_crop_offset != 0 || info->slow_hflip)
+       do_flip_h(srcinfo, dstinfo, info->x_crop_offset, info->y_crop_offset,
+ 		src_coef_arrays, dst_coef_arrays);
+     else
+--- Source/transupp.h.orig	2013-08-14 10:46:51.233811581 +0900
++++ Source/transupp.h	2013-08-14 10:58:09.373819524 +0900
+@@ -131,6 +131,13 @@
+   boolean trim;			/* if TRUE, trim partial MCUs as needed */
+   boolean force_grayscale;	/* if TRUE, convert color image to grayscale */
+   boolean crop;			/* if TRUE, crop source image */
++  boolean slow_hflip;  /* For best performance, the JXFORM_FLIP_H transform
++                          normally modifies the source coefficients in place.
++                          Setting this to TRUE will instead use a slower,
++                          double-buffered algorithm, which leaves the source
++                          coefficients in tact (necessary if other transformed
++                          images must be generated from the same set of
++                          coefficients. */
+ 
+   /* Crop parameters: application need not set these unless crop is TRUE.
+    * These can be filled in by jtransform_parse_crop_spec().
+--- /dev/null	2013-08-08 19:51:29.900216536 +0900
++++ Source/jpegcomp.h	2012-01-28 10:48:07.000000000 +0900
+@@ -0,0 +1,30 @@
++/*
++ * jpegcomp.h
++ *
++ * Copyright (C) 2010, D. R. Commander
++ * For conditions of distribution and use, see the accompanying README file.
++ *
++ * JPEG compatibility macros
++ * These declarations are considered internal to the JPEG library; most
++ * applications using the library shouldn't need to include this file.
++ */
++
++#if JPEG_LIB_VERSION >= 70
++#define _DCT_scaled_size DCT_h_scaled_size
++#define _DCT_h_scaled_size DCT_h_scaled_size
++#define _DCT_v_scaled_size DCT_v_scaled_size
++#define _min_DCT_scaled_size min_DCT_h_scaled_size
++#define _min_DCT_h_scaled_size min_DCT_h_scaled_size
++#define _min_DCT_v_scaled_size min_DCT_v_scaled_size
++#define _jpeg_width jpeg_width
++#define _jpeg_height jpeg_height
++#else
++#define _DCT_scaled_size DCT_scaled_size
++#define _DCT_h_scaled_size DCT_scaled_size
++#define _DCT_v_scaled_size DCT_scaled_size
++#define _min_DCT_scaled_size min_DCT_scaled_size
++#define _min_DCT_h_scaled_size min_DCT_scaled_size
++#define _min_DCT_v_scaled_size min_DCT_scaled_size
++#define _jpeg_width image_width
++#define _jpeg_height image_height
++#endif
