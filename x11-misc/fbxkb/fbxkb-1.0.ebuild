@@ -6,9 +6,9 @@ EAPI=3
 inherit autotools eutils git-2
 
 DESCRIPTION="X11 keyboard indicator and switcher"
-HOMEPAGE="https://github.com/basinilya/fbxkb"
+HOMEPAGE="https://github.com/jcadam/fbxkb"
 
-EGIT_REPO_URI="https://github.com/basinilya/fbxkb.git"
+EGIT_REPO_URI="https://github.com/jcadam/fbxkb.git"
 
 LICENSE="GPL-2"
 SLOT="1"
@@ -23,7 +23,3 @@ RDEPEND="x11-libs/libX11
 
 DEPEND="${RDEPEND}
 		dev-util/pkgconfig"
-
-src_prepare() {
-	epatch "${FILESDIR}"/0001-Add-cflags-and-libs-for-X11.patch
-}
