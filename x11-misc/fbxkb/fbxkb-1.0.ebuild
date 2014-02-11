@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI=3
+EAPI=5
 inherit autotools eutils git-2
 
 DESCRIPTION="X11 keyboard indicator and switcher"
@@ -23,3 +23,8 @@ RDEPEND="x11-libs/libX11
 
 DEPEND="${RDEPEND}
 		dev-util/pkgconfig"
+
+src_install() {
+	emake DESTDIR="${D}" install || die
+	dodoc CHANGELOG CREDITS INSTALL README COPYING
+}
