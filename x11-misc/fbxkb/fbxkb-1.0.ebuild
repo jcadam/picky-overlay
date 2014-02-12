@@ -22,7 +22,7 @@ RDEPEND="x11-libs/libX11
 		media-libs/libpng"
 
 DEPEND="${RDEPEND}
-		dev-util/pkgconfig"
+		dev-util/pkgconf"
 
 src_install() {
 	emake DESTDIR="${D}" install || die
