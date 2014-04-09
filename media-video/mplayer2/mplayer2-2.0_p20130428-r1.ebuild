@@ -102,7 +102,7 @@ RDEPEND+="
 		)
 	)
 	pulseaudio? ( media-sound/pulseaudio )
-	quvi? ( >=media-libs/libquvi-0.4.1 )
+	quvi? ( >=media-libs/libquvi-0.4.1 <=media-libs/libquvi-0.9.4 )
 	samba? ( net-fs/samba )
 	selinux? ( sec-policy/selinux-mplayer )
 	>=virtual/ffmpeg-9[threads?,vdpau?]
