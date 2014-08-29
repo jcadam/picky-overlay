@@ -22,7 +22,7 @@ IUSE=""
 DEPEND="dev-python/python-distutils-extra
 dev-python/imaging
 dev-python/dbus-python
-sys-power/upower
+sys-power/upower-pm-utils
 x11-libs/cairo
 dev-python/pygtk
 sys-auth/consolekit"
