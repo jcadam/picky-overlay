@@ -40,7 +40,7 @@ src_prepare() {
 	epatch "${FILESDIR}"/${PN}-5.9-rxvt-unicode-9.15.patch #192083 #383871
 	epatch "${FILESDIR}"/${PN}-5.9-fix-clang-build.patch #417763
 	epatch "${FILESDIR}"/${PN}-5.9-pkg-config.patch
-	epatch "${FILESDIR}"/${PN}-5.9-cast-error.patch
+	epatch "${FILESDIR}"/${PN}-5.9-fix-cast-error.patch
 }
 
 src_configure() {
